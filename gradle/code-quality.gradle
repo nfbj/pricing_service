@@ -1,0 +1,21 @@
+apply plugin: 'checkstyle'
+apply plugin: 'pmd'
+
+// ~~~ checkstyle configuration ~~~
+
+// tasks.withType(Checkstyle) { task -> enabled = gradle.startParameter.taskNames.contains(task.name) }
+
+checkstyleMain {
+    if (parent != null) {
+        configFile file("${parent.rootDir}/config/checkstyle/checkstyle.xml")
+    }
+}
+
+// disable checks for test source set
+checkstyleTest.enabled false
+
+task checkstyle {
+    dependsOn 'checkstyleMain'
+    group 'Verification'
+    description 'Runs Checkstyle analysis for main classes'
+}

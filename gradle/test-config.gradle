@@ -1,0 +1,126 @@
+apply plugin: 'jacoco'
+
+// ~~~ test configuration ~~~
+
+// exclude integration tests from unit test run
+test {
+    useJUnit {
+        exclude '**/*ComponentTests.class'
+        exclude '**/*IntegrationTests.class'
+        exclude '**/*DeveloperTests.class'
+        exclude '**/*AcceptanceTests.class'
+    }
+}
+
+// separate task for component tests (Tests that bring up the server, but has no external dependency)
+task component(type: Test) {
+    group 'Verification'
+    description 'Runs the component tests.'
+
+    useJUnit {
+        include '**/*ComponentTests.class'
+    }
+}
+
+// separate task for integration tests
+task integration(type: Test) {
+    group 'Verification'
+    description 'Runs the integration tests.'
+
+    useJUnit {
+        include '**/*IntegrationTests.class'
+    }
+}
+
+// separate task for acceptance tests
+task acceptance(type: Test) {
+    group 'Verification'
+    description 'Runs the acceptance tests.'
+
+    useJUnit {
+        include '**/*AcceptanceTests.class'
+    }
+}
+
+check.dependsOn component
+component.mustRunAfter test
+
+//acceptance.mustRunAfter integration
+
+// show tests executed
+tasks.withType(Test) {
+    testLogging {
+        exceptionFormat "full"
+        events "passed", "failed", "skipped" //, "started"
+        showStandardStreams
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                print "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+            }
+        }
+    }
+}
+
+// ~~~ code coverage configuration ~~~
+
+task coverageReportTest(type: JacocoReport) {
+    dependsOn test
+    group 'Verification'
+    description 'Generates code coverage report for unit tests.'
+
+    executionData test
+    sourceSets sourceSets.main
+
+    reports {
+        html.enabled true
+        xml.enabled true
+    }
+}
+
+task coverageReportIntegration(type: JacocoReport) {
+    dependsOn check
+    group 'Verification'
+    description 'Generates code coverage report for unit and integration tests.'
+
+    executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+    sourceSets sourceSets.main
+
+    reports {
+        html.enabled true
+        xml.enabled true
+    }
+}
+
+task showUnitCodeCoverageReport(type: openReportInBrowserTask) {
+    dependsOn coverageReportTest
+    group 'Verification'
+    description 'Generates code coverage report for unit tests and then opens it in default browser.'
+
+    reportFile = "$buildDir/reports/jacoco/coverageReportTest/html/index.html"
+}
+
+task showCodeCoverageReport(type: openReportInBrowserTask) {
+    dependsOn coverageReportIntegration
+    group 'Verification'
+    description 'Generates code coverage report for unit and integration tests and then opens it in default browser.'
+
+    reportFile = "$buildDir/reports/jacoco/coverageReportIntegration/html/index.html"
+}
+
+// ~~~ helper task classes ~~~
+
+class openReportInBrowserTask extends DefaultTask {
+    @InputFile def reportFile
+
+    @TaskAction
+    def openReport() {
+        def file = new File(reportFile)
+        if (!file.exists()) {
+            throw new GradleException(
+                    "Code coverage report is not generated. Please check build log files.")
+        }
+
+        println "Opening report ${file.toURI()}..."
+        java.awt.Desktop.desktop.browse file.toURI()
+    }
+}
