@@ -1,4 +1,4 @@
-FROM elvido/alpine-java-9-oracle
+FROM java:8-jre
 
 ENV SERVER_PORT 8080
 
