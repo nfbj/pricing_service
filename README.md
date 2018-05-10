@@ -23,6 +23,6 @@ Swagger Links:
 
 |End-point   |Link                                 |
 |------------|-------------------------------------|
-|Swagger UI  |http://localhost:8081/swagger-ui.html|
-|Swagger JSON|http://localhost:8081/swagger        |
+|Swagger UI  |http://localhost:8080/swagger-ui.html|
+|Swagger JSON|http://localhost:8080/swagger        |
 
