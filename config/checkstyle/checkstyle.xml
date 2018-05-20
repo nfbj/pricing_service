@@ -43,9 +43,7 @@
         <module name="UnusedImports"/>
         <module name="AvoidStarImport" />
         <module name="RedundantImport"/>
-        <module name="ImportControl">
-            <property name="file" value="config/checkstyle/checkstyle_import_control.xml"/>
-        </module>
+
 
         <!-- Block checks - http://checkstyle.sourceforge.net/config_blocks.html -->
         <module name="LeftCurly">
